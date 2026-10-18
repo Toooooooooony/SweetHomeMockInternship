@@ -2002,12 +2002,57 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     }
     return strokeWidth;
   }
-  
+
   /**
-   * Prints this component plan at the scale given in the home print attributes or at a scale 
-   * that makes it fill <code>pageFormat</code> imageable size if this attribute is <code>null</code>.
+   * Prints the plan of the viewable level corresponding to the given page index.
+   * Levels are printed in the order defined by the home, one page per level.
+   * The originally selected level is restored after printing, even if
+   * printing fails or the requested page does not exist.
+   *
+   * @param g the graphics context used for printing
+   * @param pageFormat the format of the printed page
+   * @param pageIndex the zero-based index of the page to print
+   * @return PAGE_EXISTS if the page was printed, or NO_SUCH_PAGE otherwise
    */
+  @Override
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
+    Level originalLevel = this.home.getSelectedLevel();
+
+    try {
+        List<Level> levels = this.home.getLevels();
+
+        // Preserve printing behavior for homes without levels.
+        if (levels.isEmpty()) {
+            return printSelectedLevel(g, pageFormat, pageIndex);
+        }
+
+        int currentPage = 0;
+
+        for (Level level : levels) {
+            if (!level.isViewable()) {
+                continue;
+            }
+
+            if (currentPage == pageIndex) {
+                this.home.setSelectedLevel(level);
+                return printSelectedLevel(g, pageFormat, 0);
+            }
+
+            currentPage++;
+        }
+
+        return NO_SUCH_PAGE;
+    } finally {
+        // Always restore the selected level, even if printing fails.
+        this.home.setSelectedLevel(originalLevel);
+    }
+  }
+
+  /**
+   * Prints the plan of the currently selected level using the original
+   * plan rendering and pagination logic.
+   */
+  public int printSelectedLevel(Graphics g, PageFormat pageFormat, int pageIndex) {
     List<Selectable> printedItems = getPaintedItems(); 
     Rectangle2D printedItemBounds = getItemsBounds(g, printedItems);
     if (printedItemBounds != null) {
