@@ -921,6 +921,9 @@ public class FurnitureTable extends JTable implements View, Printable {
           case HEIGHT : 
             writer.write(sizeFormat.format(copiedPiece.getHeight()));
             break;
+          case VOLUME:
+            writer.write(sizeFormat.format(copiedPiece.getVolume()));
+            break;
           case X : 
             writer.write(sizeFormat.format(copiedPiece.getX()));
             break;
@@ -1130,6 +1133,8 @@ public class FurnitureTable extends JTable implements View, Printable {
           return preferences.getLocalizedString(FurnitureTable.class, "depthColumn");
         case HEIGHT : 
           return preferences.getLocalizedString(FurnitureTable.class, "heightColumn");
+        case VOLUME :
+          return preferences.getLocalizedString(FurnitureTable.class, "volumeColumn");
         case X : 
           return preferences.getLocalizedString(FurnitureTable.class, "xColumn");
         case Y :
@@ -1173,7 +1178,8 @@ public class FurnitureTable extends JTable implements View, Printable {
           return 120; 
         case WIDTH :
         case DEPTH :
-        case HEIGHT : 
+        case HEIGHT :
+        case VOLUME :
         case X : 
         case Y :
         case ELEVATION : 
@@ -1215,6 +1221,8 @@ public class FurnitureTable extends JTable implements View, Printable {
           return getSizeRenderer(HomePieceOfFurniture.SortableProperty.DEPTH, preferences);
         case HEIGHT : 
           return getSizeRenderer(HomePieceOfFurniture.SortableProperty.HEIGHT, preferences);
+        case VOLUME :
+          return getVolumeRenderer(preferences);
         case X : 
           return getSizeRenderer(HomePieceOfFurniture.SortableProperty.X, preferences);
         case Y :
@@ -1289,6 +1297,29 @@ public class FurnitureTable extends JTable implements View, Printable {
     private TableCellRenderer getNameWithIconRenderer() {
       return new TreeTableNameCellRenderer();
     }
+
+    /**
+    * Returns a renderer that displays the volume of a piece of furniture.
+    */
+    private TableCellRenderer getVolumeRenderer(final UserPreferences preferences) {
+      return new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(
+          JTable table, Object value, boolean isSelected,
+          boolean hasFocus, int row, int column) {
+
+          Object volume = value != null
+              ? preferences.getLengthUnit().getFormat().format(
+              ((HomePieceOfFurniture)value).getVolume())
+              : null;
+
+          setHorizontalAlignment(JLabel.RIGHT);
+
+          return super.getTableCellRendererComponent(
+              table, volume, isSelected, hasFocus, row, column);
+        }
+      };
+  }
 
     /**
      * Returns a renderer that converts the displayed <code>property</code> of a piece of furniture 
